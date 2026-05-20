@@ -16,21 +16,15 @@ connectDB();
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  "https://ai-recipe-generator-xi.vercel.app",
+  "https://ai-reciepe-generator-xi.vercel.app",
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed"));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true,
 }));
+
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
