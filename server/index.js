@@ -18,6 +18,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://ai-reciepe-generator-orpin.vercel.app',
   'https://ai-recipe-generator-git-main-shivatejas-projects-f629e9b9.vercel.app',
+  'https://ai-reciepe-generator-yrfen2pli-shivatejas-projects-f629e9b9.vercel.app/',
+  'https://ai-recipe-generator-xi.vercel.app',
 ];
 
 app.use(cors({
