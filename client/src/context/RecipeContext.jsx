@@ -20,29 +20,27 @@ export const RecipeProvider = ({ children }) => {
   const [error,             setError]             = useState(null);
   const [dietaryPreference, setDietaryPreference] = useState("");
 
-  const API_BASE = "/api/recipes";
+const API_BASE = `${import.meta.env.VITE_API_URL}/api/recipes`;;
 
   const analyzeImage = useCallback(async (imageFile) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const formData = new FormData();
-      formData.append("image", imageFile);
+  setLoading(true);
+  setError(null);
+  try {
+    const formData = new FormData();
+    formData.append("image", imageFile);
 
-      const { data } = await axios.post(`${API_BASE}/analyze`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+    const { data } = await axios.post(`${API_BASE}/analyze`, formData);
 
-      setIngredients(data.ingredients);
-      return data.ingredients;
-    } catch (err) {
-      const message = err.response?.data?.error || "Failed to analyze image";
-      setError(message);
-      throw new Error(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    setIngredients(data.ingredients);
+    return data.ingredients;
+  } catch (err) {
+    const message = err.response?.data?.error || "Failed to analyze image";
+    setError(message);
+    throw new Error(message);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const generateRecipe = useCallback(
     async (ingredientList, diet) => {
