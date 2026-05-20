@@ -67,65 +67,111 @@ const generateRecipe = async (req, res) => {
     const { ingredients, dietaryPreference } = req.body;
 
     if (!ingredients || ingredients.length === 0) {
-      return res.status(400).json({ error: "Ingredients are required" });
+      return res.status(400).json({
+        error: "Ingredients are required",
+      });
     }
 
-    // STEP A: Build the dietary filter string
     const dietFilter = dietaryPreference
-      ? `The recipe MUST be${dietaryPreference}-friendly.`
+      ? `The recipe MUST be ${dietaryPreference}-friendly.`
       : "";
 
-    // STEP B: Construct the structured JSON prompt
-    const prompt = `You are a professional chef and nutritionist. Based on these ingredients:${ingredients.join(", ")}.
+    const prompt = `
+You are a professional chef.
+
+Using these ingredients:
+${ingredients.join(", ")}
+
 ${dietFilter}
 
-Generate a detailed recipe in the following JSON format (return ONLY valid JSON, no markdown):
+Return ONLY valid JSON.
+
 {
   "title": "Recipe Name",
-  "ingredients": [{"name": "ingredient name", "quantity": "amount needed"}],
-  "instructions": [{"step": 1, "description": "Step description"}],
+  "ingredients": [
+    {
+      "name": "ingredient",
+      "quantity": "amount"
+    }
+  ],
+  "instructions": [
+    {
+      "step": 1,
+      "description": "instruction"
+    }
+  ],
   "nutrition": {
-    "calories": "approximate calories per serving",
-    "protein": "protein in grams",
-    "carbs": "carbs in grams",
-    "fat": "fat in grams",
-    "fiber": "fiber in grams"
+    "calories": "value",
+    "protein": "value",
+    "carbs": "value",
+    "fat": "value",
+    "fiber": "value"
   },
-  "servings": "number of servings",
-  "prepTime": "preparation time",
-  "cookTime": "cooking time",
-  "difficulty": "Easy/Medium/Hard",
-  "dietaryTags": ["applicable tags from: vegan, vegetarian, keto, gluten-free, dairy-free, low-carb, high-protein, paleo"],
-  "servingSuggestions": ["suggestion 1", "suggestion 2"]
-}`;
+  "servings": "value",
+  "prepTime": "value",
+  "cookTime": "value",
+  "difficulty": "Easy",
+  "dietaryTags": [],
+  "servingSuggestions": []
+}
+`;
 
-    // STEP C: Call Groq Text (LLaMA 3.3 70B)
     const response = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.2,
       max_tokens: 1500,
     });
 
     const text = response.choices[0].message.content;
 
-    // STEP D: Extract JSON object from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    console.log("RAW GROQ RESPONSE:");
+    console.log(text);
+
+    // Remove markdown formatting
+    const cleaned = text
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
+
+    // Extract JSON safely
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+
     if (!jsonMatch) {
-      return res.status(500).json({ error: "Failed to parse recipe" });
+      return res.status(500).json({
+        error: "No valid JSON returned from AI",
+      });
     }
 
-    const recipe = JSON.parse(jsonMatch[0]);
+    let recipe;
 
-    // STEP E: Attach the original detected ingredients
+    try {
+      recipe = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error("JSON Parse Error:", parseError);
+
+      return res.status(500).json({
+        error: "Invalid JSON returned from AI",
+      });
+    }
+
     recipe.detectedIngredients = ingredients;
 
     res.json({ recipe });
+
   } catch (error) {
     console.error("Recipe generation error:", error);
-    res.status(500).json({ error: "Failed to generate recipe" });
+
+    res.status(500).json({
+      error: "Failed to generate recipe",
+    });
   }
 };
-
 // ── POST /api/recipes/suggestions ───────────────────────────
 const generateMultipleRecipes = async (req, res) => {
   try {
