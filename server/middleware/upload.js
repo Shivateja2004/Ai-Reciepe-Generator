@@ -24,16 +24,6 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
-// ── Middleware ────────────────────────────────────────────────
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://ai-reciepe-generator-orpin.vercel.app'
-  ],
-  credentials: true,
-}));
-
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
