@@ -14,19 +14,20 @@ connectDB();
 
 // ── Middleware ────────────────────────────────────────────────
 const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'https://ai-reciepe-generator-orpin.vercel.app',
-  'https://ai-recipe-generator-git-main-shivatejas-projects-f629e9b9.vercel.app',
-  'https://ai-reciepe-generator-yrfen2pli-shivatejas-projects-f629e9b9.vercel.app/',
-  'https://ai-recipe-generator-xi.vercel.app',
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://ai-recipe-generator-xi.vercel.app",
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
   },
   credentials: true,
 }));
